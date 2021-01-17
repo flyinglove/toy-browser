@@ -1,7 +1,5 @@
-const { rejects } = require('assert')
-const { connect } = require('http2')
 const net = require('net')
-const { resolve } = require('path')
+const parser = require('./parser.js')
 
 class Request {
     /**
@@ -53,7 +51,7 @@ ${this.bodyText}`
                 if (parser.isFinished) {
                     resolve(parser.response)
                 }
-                console.log(parser.headers)
+                // console.log(parser.headers)
                 connection.end()
             })
             connection.on('error', (error) => {
@@ -167,10 +165,6 @@ class TrunkedBodyParser {
         this.isFinished = false
         this.current = this.WAITING_LENGTH
     }
-    receive(string) {
-
-    }
-
     receiveChar(char) {
         if (this.current === this.WAITING_LENGTH) {
             if (char === '\r') {
@@ -179,8 +173,8 @@ class TrunkedBodyParser {
                 }
                 this.current = this.WAITING_LENGTH_END
             } else {
-                this.length *= 10
-                this.length += char.charCodeAt(0) - '0'.charCodeAt(0)
+                this.length *= 16
+                this.length += parseInt(char, 16)
             }
         } else
         if (this.current === this.WAITING_LENGTH_END) {
@@ -246,7 +240,7 @@ void async function() {
         }
     })
     let response = await request.send()
-    console.log(response)
+    parser.parserHTML(response.body)
 }()
 // const client = net.createConnection(
 //     {
