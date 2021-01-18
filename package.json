@@ -1,0 +1,11 @@
+{
+  "name": "toy-browser",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/flyinglove/toy-browser.git",
+  "author": "flyinglove <446419676@qq.com>",
+  "license": "MIT",
+  "dependencies": {
+    "css": "^3.0.0"
+  }
+}
