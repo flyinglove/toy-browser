@@ -55,7 +55,7 @@ ${this.bodyText}`
                 connection.end()
             })
             connection.on('error', (error) => {
-                reject(data.toString())
+                reject(error.toString())
                 connection.end()
             })
         })

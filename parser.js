@@ -1,9 +1,21 @@
+const css = require('css')
 const EOF = Symbol('EOF')
 
 let currentToken = null
 let currentAttribute = null
 let stack = [{type: 'document', children: []}]
 let currentTextNode = ''
+
+let rules = []
+function addCssRules(text) {
+    var ast = css.parse(text)
+    // console.log(JSON.stringify(ast, null, '     '))
+    rules.push(...ast.stylesheet.rules)
+}
+function computeCss(element) {
+    // console.log(rules)
+    console.log('compute css for elment:  ', element)
+}
 function emit(token) {
     let top = stack[stack.length - 1]
     if (token.type === 'startTag') {
@@ -21,6 +33,7 @@ function emit(token) {
                 })
             }
         }
+        computeCss(element)
         top.children.push(element)
         element.parent = top
         if (!token.isSelfClosing) {
@@ -32,6 +45,9 @@ function emit(token) {
         if (top.tagName !== token.tagName) {
             throw new Error('aa')
         } else {
+            if(top.tagName === 'style') {
+                addCssRules(top.children[0].content)
+            }
             stack.pop()
         }
         currentTextNode = null
@@ -223,5 +239,5 @@ module.exports.parserHTML = function parserHTML(html) {
         state = state(c)
     }
     state = state(EOF)
-    console.log(stack[0].children)
+    // console.log(stack[0].children)
 }
