@@ -14,7 +14,52 @@ function addCssRules(text) {
 }
 function computeCss(element) {
     // console.log(rules)
-    console.log('compute css for elment:  ', element)
+    console.log('compute css for elment:  ',  element)
+    var element = stack.slice().reverse()
+    if (!element.computedStyle) {
+        element.computedStyle = {}
+        for (let rule of rules) {
+            var selectorParts = rule.selectors[0].split(' ').reverse()
+            if (!match(element, selectorParts[0])) {
+                continue
+            }
+            var matched = false
+            var j = 1
+            for (var i = 0; i < element.length; i++) {
+                if (match(element[i], selectorParts[j])) {
+                    j++
+                }
+            }
+            if (j >= selectorParts.length) {
+                matched = true
+            }
+            if (matched) {
+                console.log('element', element, 'matched rule', rule)
+            }
+        }
+    }
+}
+
+function match(element, selector) {
+    if (!selector || !element.attributes) {
+        return false
+    }
+    if (selector.charAt(0) === '#') {
+        var attr = element.attributes.filter(attr => attr.name === 'id')
+        if (attr && attr.value === selector.replace('#', '')) {
+            return true
+        }
+    }
+    if (selector.charAt(0) === '.') {
+        attr = element.attributes.filter(attr => attr.name === 'class')
+        if (attr && attr.value === selector.replace('.', '')) {
+            return true
+        }
+    }
+    if (element.tagName === selector) {
+        return true
+    }
+    return false
 }
 function emit(token) {
     let top = stack[stack.length - 1]
