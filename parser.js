@@ -1,4 +1,5 @@
 const css = require('css')
+const layout = require('./layout.js')
 const EOF = Symbol('EOF')
 
 let currentToken = null
@@ -14,8 +15,9 @@ function addCssRules(text) {
 }
 function computeCss(element) {
     // console.log(rules)
-    console.log('compute css for elment:  ',  element)
-    var element = stack.slice().reverse()
+    var elements = stack.slice().reverse()
+    console.log('compute css for elment:  ',  rules)
+
     if (!element.computedStyle) {
         element.computedStyle = {}
         for (let rule of rules) {
@@ -25,8 +27,8 @@ function computeCss(element) {
             }
             var matched = false
             var j = 1
-            for (var i = 0; i < element.length; i++) {
-                if (match(element[i], selectorParts[j])) {
+            for (var i = 0; i < elements.length; i++) {
+                if (match(elements[i], selectorParts[j])) {
                     j++
                 }
             }
@@ -35,12 +37,27 @@ function computeCss(element) {
             }
             if (matched) {
                 console.log('element', element, 'matched rule', rule)
+                var sp = specificity(rule.selectors[0])
+                var computedStyle = element.computedStyle
+                for (var declaration of rule.declarations) {
+                    if (!computedStyle[declaration.property]) {
+                        computedStyle[declaration.property] = {}
+                    }
+                    if (!computedStyle[declaration.property].specificity) {
+                        computedStyle[declaration.property].value = declaration.value
+                        computedStyle[declaration.property].specificity = sp
+                    } else if (compare(computedStyle[declaration.property].specificity, sp) < 0) {
+                        computedStyle[declaration.property].value = declaration.value
+                        computedStyle[declaration.property].specificity = sp
+                    }
+                }
             }
         }
     }
 }
 
 function match(element, selector) {
+    // console.log('eee', element, selector)
     if (!selector || !element.attributes) {
         return false
     }
@@ -61,6 +78,36 @@ function match(element, selector) {
     }
     return false
 }
+
+
+function specificity(selector) {
+    var p = [0, 0, 0, 0]
+    var selectorPairs = selector.split(' ')
+    for (var part of selectorPairs) {
+        if (part.charAt(0) === '#') {
+            p[1] += 1
+        } else if (part.charAt(0) === '.') {
+            p[2] += 1
+        } else {
+            p[3] += 1
+        }
+    }
+    return p
+}
+
+function compare(sp1, sp2) {
+     if (sp1[0] - sp2[0] ) {
+         return sp1[0] - sp2[0]
+     }
+     if (sp1[1] - sp2[1]) {
+        return sp1[1] - sp2[1]
+     }
+     if (sp1[2] - sp2[2]) {
+         return sp1[2] - sp2[2]
+     }
+     return sp1[3] - sp2[3]
+}
+
 function emit(token) {
     let top = stack[stack.length - 1]
     if (token.type === 'startTag') {
@@ -93,6 +140,7 @@ function emit(token) {
             if(top.tagName === 'style') {
                 addCssRules(top.children[0].content)
             }
+            layout(top)
             stack.pop()
         }
         currentTextNode = null
