@@ -6,6 +6,7 @@
   "author": "flyinglove <446419676@qq.com>",
   "license": "MIT",
   "dependencies": {
-    "css": "^3.0.0"
+    "css": "^3.0.0",
+    "images": "^3.2.3"
   }
 }

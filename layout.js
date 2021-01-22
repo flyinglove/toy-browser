@@ -1,4 +1,3 @@
-const { parse } = require("path")
 
 function getStyle(element) {
     if (!element.style) {
@@ -29,7 +28,7 @@ function layout(element) {
     items.sort(function(a, b) {
         return (a.order || 0) - (b.order || 0)
     })
-    var style = elementStyle
+    var style = elementStyle;
     ['width', 'height'].forEach(size => {
         if (style[size] === 'auto' || style[size] === '') {
             style[size] = null
@@ -240,4 +239,82 @@ function layout(element) {
             }
         })
     }
+    if (!style[crossSize]) {
+        crossSpace = 0
+        elementStyle[crossSize] = 0
+        for (var i = 0; i < flexLines.length; i++) {
+            elementStyle[crossSize] = elementStyle[crossSize] + flexLines[i].crossSpace
+        }
+    } else {
+        crossSpace = style[crossSize]
+        for (var i = 0; i < flexLines.length; i++) {
+            crossSpace -= flexLines[i].crossSpace
+        }
+    }
+    if (style.flexWrap === 'wrap-reverse') {
+        crossBase = style[crossSize]
+    } else {
+        crossBase = 0
+    }
+
+    if(style.alignContent === 'flex-start') {
+        crossBase += 0
+        step = 0
+    }
+    if(style.alignContent === 'flex-end') {
+        crossBase += crossSign * crossSpace
+        step = 0
+    }
+    if(style.alignContent === 'center') {
+        crossBase += crossSign * crossSpace / 2
+        step = 0
+    }
+    if(style.alignContent === 'space-between') {
+        step= crossSpace / (flexLiness.length - 1)
+        crossBase += 0
+    }
+    if(style.justifyContent === 'space-around') {
+        step= crossSpace / flexLines.length * crossSign
+        crossBase += crossSign + step / 2
+    }
+    if (style.alignContent === 'stretch') {
+        crossBase += 0
+        step = 0
+    }
+    flexLines.forEach(function(items) {
+        var lineCrossSize = style.alignContent === 'stretch' ?
+            items.crossSpace + crossSpace / flexLines.length :
+            items.crossSpace
+
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i]
+            var itemStyle = getStyle(item)
+            var align = itemStyle.alignSelf || style.alignItems
+
+            if (itemStyle[crossSize] === null) {
+                itemStyle[crossSize] = (align === 'stretch') ? lineCrossSize : 0
+            }
+            if (align === 'flex-start') {
+                itemStyle[crossStart] = crossBase
+                itemStyle[crossEnd] = itemStyle[crossStart] + itemStyle[crossSize]
+            }
+            if (align === 'flex-end') {
+                itemStyle[crossEnd] = crossBase + crossSign * lineCrossSize
+                itemStyle[crossStart] = itemStyle[crossEnd] - crossSign * itemStyle[crossSize]
+            }
+            if (align === 'center') {
+                itemStyle[crossStart] = crossBase + crossSign * (lineCrossSize - itemStyle[crossSize])
+                itemStyle[crossEnd] = itemStyle[crossStart] + crossSign * itemStyle[crossSize]
+            }
+            if (align === 'stertch') {
+                itemStyle[crossStart] = crossBase
+                itemStyle[crossEnd] = crossBase + crossSign * ((itemStyle[crossSize] !== null && itemStyle[crossSize] !== void 0) ? itemStyle[crossSize] : 0)
+                itemStyle[crossSize] = crossSign * (itemStyle[crossEnd] - itemStyle[crossStart])
+            }
+           crossBase += crossSign * (lineCrossSize + step)
+        }
+
+    })
 }
+
+module.exports = layout

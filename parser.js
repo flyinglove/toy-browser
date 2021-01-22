@@ -16,12 +16,12 @@ function addCssRules(text) {
 function computeCss(element) {
     // console.log(rules)
     var elements = stack.slice().reverse()
-    console.log('compute css for elment:  ',  rules)
 
     if (!element.computedStyle) {
         element.computedStyle = {}
         for (let rule of rules) {
             var selectorParts = rule.selectors[0].split(' ').reverse()
+            // console.log('rulesdfs', element, selectorParts, match(element, selectorParts[0]))
             if (!match(element, selectorParts[0])) {
                 continue
             }
@@ -36,7 +36,6 @@ function computeCss(element) {
                 matched = true
             }
             if (matched) {
-                console.log('element', element, 'matched rule', rule)
                 var sp = specificity(rule.selectors[0])
                 var computedStyle = element.computedStyle
                 for (var declaration of rule.declarations) {
@@ -57,18 +56,17 @@ function computeCss(element) {
 }
 
 function match(element, selector) {
-    // console.log('eee', element, selector)
     if (!selector || !element.attributes) {
         return false
     }
     if (selector.charAt(0) === '#') {
-        var attr = element.attributes.filter(attr => attr.name === 'id')
+        var attr = element.attributes.find(attr => attr.name === 'id')
         if (attr && attr.value === selector.replace('#', '')) {
             return true
         }
     }
     if (selector.charAt(0) === '.') {
-        attr = element.attributes.filter(attr => attr.name === 'class')
+        attr = element.attributes.find(attr => attr.name === 'class')
         if (attr && attr.value === selector.replace('.', '')) {
             return true
         }
@@ -76,6 +74,7 @@ function match(element, selector) {
     if (element.tagName === selector) {
         return true
     }
+
     return false
 }
 
@@ -332,5 +331,6 @@ module.exports.parserHTML = function parserHTML(html) {
         state = state(c)
     }
     state = state(EOF)
+    return stack[0]
     // console.log(stack[0].children)
 }
