@@ -154,7 +154,7 @@ function emit(token) {
         currentTextNode.content += token.content
     }
     if (token.type != 'text') {
-        console.log(token)
+        // console.log(token)
     }
 }
 // 开始标签， 结束标签，自封闭标签
